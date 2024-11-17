@@ -25,10 +25,11 @@ typedef struct{
 }Mat;
 
 Mat mat_alloc(size_t rows, size_t cols);
-void mat_dot(Mat dest, Mat a);
-void mat_sum(Mat dest, Mat a);
+Mat mat_dot(Mat dest, Mat a);
+void mat_sum(Mat dest, Mat src);
 void print_mat(Mat m);
 void mat_rand(Mat m, float low, float high);
+void mat_fill(Mat m, float value);
 float rand_float(void);
 #endif //NN_H
 
@@ -46,15 +47,34 @@ Mat mat_alloc(size_t rows, size_t cols)
     NN_ASSERT(m.es != NULL);
     return m;
 }
-void mat_dot(Mat dest, Mat a)
+Mat mat_dot(Mat dest, Mat a)
 {
-    (void)dest;
-    (void)a; 
+    NN_ASSERT(dest.cols == a.rows);
+    Mat other = mat_alloc(dest.rows, a.cols);
+    mat_fill(other, 0.0f);
+    for(size_t i = 0; i < dest.rows; ++i)
+    {
+        for(size_t j = 0; j < a.cols; ++j)
+        {
+            for(size_t k = 0; k < a.cols; ++k)
+            {
+                MAT_AT(other, i,j) += MAT_AT(dest, i, k) * MAT_AT(a, k, j);
+            }
+        }
+    }
+    return other;
 }
-void mat_sum(Mat dest, Mat a)
+void mat_sum(Mat dest, Mat src)
 {
-    (void)dest;
-    (void)a;
+    NN_ASSERT(dest.rows == src.rows);
+    NN_ASSERT(dest.cols == src.cols);
+    for(size_t i = 0; i < dest.rows; ++i)
+    {
+        for(size_t j = 0; j < dest.cols; ++j)
+        {
+            MAT_AT(dest, i,j) = MAT_AT(dest, i,j) + MAT_AT(src, i,j);
+        }
+    }
 }
 void print_mat(Mat m)
 {
@@ -75,6 +95,16 @@ void mat_rand(Mat m, float low, float high)
         {
        //      MAT_AT(m, i,j) = ceil(rand_float() * 10);
             MAT_AT(m, i,j) = rand_float() * (high - low) + low;
+        }
+    }
+}
+void mat_fill(Mat m, float value)
+{
+    for(size_t i = 0; i < m.rows; ++i)
+    {
+        for(size_t j = 0; j < m.cols; ++j)
+        {
+            MAT_AT(m, i,j) = value;
         }
     }
 }
